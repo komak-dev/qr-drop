@@ -1,10 +1,10 @@
-.vscode
+.vscode/
 .DS_Store
 
 *.log*
 
-client-pages/node_modules
-client-pages/.next
-client-pages/out
+client-pages/node_modules/
+client-pages/.next/
+client-pages/out/
 
-src-tauri/target
+src-tauri/target/
