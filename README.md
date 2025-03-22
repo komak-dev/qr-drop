@@ -7,6 +7,7 @@ QRDrop is a simple file sharing service that allows you to share files with othe
 
 ### `init.sh`
 This script will install all the dependencies for the project.
+You should run this script after cloning the repository.
 
 ### `dev.sh`
 This script will start the development server at `http://{your_ip}:8080`.
