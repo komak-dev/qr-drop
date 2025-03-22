@@ -1,7 +1,23 @@
-# Tauri + Vanilla
+# QRDrop
 
-This template should help get you started developing with Tauri in vanilla HTML, CSS and Javascript.
+QRDrop is a simple file sharing service that allows you to share files with others by scanning a QR code. It is built using Tauri and Next.js.
 
-## Recommended IDE Setup
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## How to use `.sh` files
+
+### `init.sh`
+This script will install all the dependencies for the project.
+
+### `dev.sh`
+This script will start the development server at `http://{your_ip}:8080`.
+`/client-pages/out` will be served as the client pages.
+
+### `dev_client_pages.sh`
+This script will start the development server for api at `http://{your_ip}:3000`, and the client pages at `http://{your_ip}:8080`.
+You can develop the Next.js for client pages with hot reloading.
+
+### `dev_build.sh`
+This script will build Next.js at `/client-pages` directory before starting the development server at `http://{your_ip}:8080`.
+
+### `build.sh`
+This script will build Next.js at `/client-pages` directory and then build the Tauri app.
