@@ -1,15 +1,15 @@
 use std::path::PathBuf;
 use std::sync::Mutex;
 use bytes::Bytes;
-use std::time::{Duration, Instant};
 use rand::distr::{Alphanumeric, SampleString};
 use pnet::datalink;
+use serde::Serialize;
 
 
 
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ServerInfo {
     pub ip: String,
     pub api_port: u16,
@@ -32,118 +32,56 @@ impl ServerInfo {
 }
 
 
-pub struct StaticFilesManager {
+
+
+
+#[derive(Clone, Debug, Serialize)]
+pub struct D2MFileName {
+    pub name: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct M2DFileName {
+    pub name: String,
+    pub sender_ip: String,
+}
+
+#[derive(Clone)]
+pub struct D2MFile {
+    pub name: String,
+    pub data: Bytes,
+}
+
+#[derive(Clone)]
+pub struct M2DFile {
+    pub name: String,
+    pub data: Bytes,
+    pub sender_ip: String,
+}
+
+
+pub struct ActixData {
+    pub server_info: ServerInfo,
     pub client_pages_dir: PathBuf,
+    pub token: String,
+    pub d2m_filenames: Mutex<Vec<D2MFileName>>,
+    pub m2d_filenames: Mutex<Vec<M2DFileName>>,
+    pub d2m_files: Mutex<Vec<D2MFile>>,
+    pub m2d_files: Mutex<Vec<M2DFile>>,
 }
 
-impl StaticFilesManager {
-    pub fn new(client_pages_dir: PathBuf) -> Self {
-        Self { client_pages_dir }
-    }
-}
 
-
-pub struct TFileNames {
-    pub d2m: Mutex<Vec<String>>,
-    pub m2d: Mutex<Vec<String>>,
-}
-
-impl TFileNames {
-    pub fn new() -> Self {
-        TFileNames {
-            d2m: Mutex::new(Vec::new()),
-            m2d: Mutex::new(Vec::new()),
+impl ActixData {
+    pub fn new(server_info: ServerInfo, client_pages_dir: PathBuf) -> Self {
+        Self {
+            server_info,
+            client_pages_dir,
+            token: Alphanumeric.sample_string(&mut rand::rng(), 32).to_string(),
+            d2m_filenames: Mutex::new(Vec::new()),
+            m2d_filenames: Mutex::new(Vec::new()),
+            d2m_files: Mutex::new(Vec::new()),
+            m2d_files: Mutex::new(Vec::new()),
         }
     }
 }
-
-
-pub struct TFiles {
-    pub d2m: Mutex<Vec<(String, Bytes)>>,
-    pub m2d: Mutex<Vec<(String, Bytes)>>,
-}
-
-impl TFiles {
-    pub fn new() -> Self {
-        TFiles {
-            d2m: Mutex::new(Vec::new()),
-            m2d: Mutex::new(Vec::new()),
-        }
-    }
-}
-
-pub struct TokenManager {
-    pub d2m_token: Mutex<(Option<String>, Instant)>,
-    pub m2d_token: Mutex<(Option<String>, Instant)>,
-    pub expiration: Duration,
-}
-
-impl TokenManager {
-    pub fn new() -> Self {
-        TokenManager {
-            d2m_token: Mutex::new((None, Instant::now())),
-            m2d_token: Mutex::new((None, Instant::now())),
-            expiration: Duration::from_secs(10 * 60),
-        }
-    }
-
-    fn generate_token_string() -> String {
-        Alphanumeric.sample_string(&mut rand::rng(), 32)
-    }
-
-    fn reset_d2m_token(&self) {
-        self.d2m_token.lock().unwrap().0 = Some(Self::generate_token_string());
-        self.d2m_token.lock().unwrap().1 = Instant::now();
-    }
-
-    fn reset_m2d_token(&self) {
-        self.m2d_token.lock().unwrap().0 = Some(Self::generate_token_string());
-        self.m2d_token.lock().unwrap().1 = Instant::now();
-    }
-
-    fn clear_d2m_token(&self) {
-        self.d2m_token.lock().unwrap().0 = None;
-    }
-
-    fn clear_m2d_token(&self) {
-        self.m2d_token.lock().unwrap().0 = None;
-    }
-
-    fn get_d2m_remaining_ms(&self) -> u128 {
-        let token = self.d2m_token.lock().unwrap();
-        if token.0.is_none() || token.1.elapsed() > self.expiration {
-            0
-        } else {
-            self.expiration.as_millis() - token.1.elapsed().as_millis()
-        }
-    }
-
-    fn get_m2d_remaining_ms(&self) -> u128 {
-        let token = self.m2d_token.lock().unwrap();
-        if token.0.is_none() || token.1.elapsed() > self.expiration {
-            0
-        } else {
-            self.expiration.as_millis() - token.1.elapsed().as_millis()
-        }
-    }
-
-    fn validate_d2m_token(&self, t: &str) -> bool {
-        let token = self.d2m_token.lock().unwrap();
-        token.0.is_some() && token.0.as_ref().unwrap() == t
-    }
-
-    fn validate_m2d_token(&self, t: &str) -> bool {
-        let token = self.m2d_token.lock().unwrap();
-        token.0.is_some() && token.0.as_ref().unwrap() == t
-    }
-
-    fn d2m_expired(&self) -> bool {
-        self.get_d2m_remaining_ms() == 0
-    }
-
-    fn m2d_expired(&self) -> bool {
-        self.get_m2d_remaining_ms() == 0
-    }
-}
-
-

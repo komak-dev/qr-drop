@@ -1,4 +1,4 @@
-use super::{TokenManager, ServerInfo};
+use super::ActixData;
 
 use actix_web::{web, get, Responder};
 
@@ -9,11 +9,9 @@ use actix_web::{web, get, Responder};
 // QRコードにするURLのやり取り
 #[get("/api/d2m/mobile-url")]
 async fn get_d2m_mobile_url(
-    token_manager: web::Data<TokenManager>,
-    server_info: web::Data<ServerInfo>
+    data: web::Data<ActixData>,
 ) -> impl Responder {
-    let token = token_manager.d2m_token.lock().unwrap();
+    println!("[POST] /api/d2m/mobile-url");
 
-
-    "aiueo"
+    data.token.clone()
 }

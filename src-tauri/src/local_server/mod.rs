@@ -4,8 +4,7 @@ mod filenames;
 mod mobile_url;
 mod client_pages;
 
-pub use data::ServerInfo;
-use data::{TFiles, TFileNames, TokenManager, StaticFilesManager};
+pub use data::{ServerInfo, ActixData, D2MFile, M2DFile, D2MFileName, M2DFileName};
 use client_pages::serve_client_pages;
 use filenames::{
     get_d2m_filenames,
@@ -58,18 +57,15 @@ pub fn start_server(app: &tauri::App) -> ServerInfo {
     let client_pages_port = if *IS_CLIENT_PAGES_DEV { 3000 } else { api_port };
 
     let server_info = ServerInfo::new(api_port, client_pages_port);
-    let server_info_clone = server_info.clone();
 
     let client_pages_dir = app.path().resource_dir().unwrap().join("client-pages");
+
+    let data = web::Data::new(ActixData::new(server_info.clone(), client_pages_dir.clone()));
 
     tauri::async_runtime::spawn(async move {
         HttpServer::new(move || {
             App::new()
-                .app_data(web::Data::new(StaticFilesManager::new(client_pages_dir.clone())))
-                .app_data(web::Data::new(server_info_clone.clone()))
-                .app_data(web::Data::new(TFileNames::new()))
-                .app_data(web::Data::new(TFiles::new()))
-                .app_data(web::Data::new(TokenManager::new()))
+                .app_data(data.clone())
                 .service(get_ip)
                 .service(get_d2m_filenames)
                 .service(get_m2d_filenames)
