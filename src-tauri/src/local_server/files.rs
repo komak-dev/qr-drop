@@ -15,8 +15,15 @@ use std::collections::HashMap;
 
 // 一時的にメモリ上に保存したファイルのやり取り
 #[get("/api/d2m/files")]
-pub async fn get_d2m_files(data: web::Data<ActixData>) -> actix_web::Result<HttpResponse> {
+pub async fn get_d2m_files(
+    data: web::Data<ActixData>,
+    query: web::Query<HashMap<String, String>>,
+) -> actix_web::Result<HttpResponse> {
     println!("[GET] /api/d2m/files");
+
+    if !data.validate_token(query.get("token").unwrap_or(&"".to_string())) {
+        return Err(actix_web::error::ErrorUnauthorized("Invalid Token"));
+    }
 
     let files = data.d2m_files.lock().unwrap();
 
@@ -41,8 +48,15 @@ pub async fn get_d2m_files(data: web::Data<ActixData>) -> actix_web::Result<Http
 }
 
 #[get("/api/m2d/files")]
-pub async fn get_m2d_files(data: web::Data<ActixData>, query: web::Query<HashMap<String, String>>) -> actix_web::Result<HttpResponse> {
+pub async fn get_m2d_files(
+    data: web::Data<ActixData>, 
+    query: web::Query<HashMap<String, String>>
+) -> actix_web::Result<HttpResponse> {
     println!("[GET] /api/m2d/files");
+
+    if !data.validate_token(query.get("token").unwrap_or(&"".to_string())) {
+        return Err(actix_web::error::ErrorUnauthorized("Invalid Token"));
+    }
 
     let Some(sender_ip) = query.get("senderIp") else {
         return Err(actix_web::error::ErrorBadRequest("senderIp is required"));
@@ -72,8 +86,16 @@ pub async fn get_m2d_files(data: web::Data<ActixData>, query: web::Query<HashMap
 }
 
 #[post("/api/d2m/files")]
-pub async fn post_d2m_files(data: web::Data<ActixData>, mut payload: Multipart) -> actix_web::Result<HttpResponse> {
+pub async fn post_d2m_files(
+    data: web::Data<ActixData>,
+    mut payload: Multipart,
+    query: web::Query<HashMap<String, String>>
+) -> actix_web::Result<HttpResponse> {
     println!("[POST] /api/d2m/files");
+
+    if !data.validate_token(query.get("token").unwrap_or(&"".to_string())) {
+        return Err(actix_web::error::ErrorUnauthorized("Invalid Token"));
+    }
 
     let mut files = data.d2m_files.lock().unwrap();
     files.clear();
@@ -99,9 +121,14 @@ pub async fn post_d2m_files(data: web::Data<ActixData>, mut payload: Multipart) 
 pub async fn post_m2d_files(
     data: web::Data<ActixData>,
     mut payload: Multipart,
-    req: HttpRequest
+    req: HttpRequest,
+    query: web::Query<HashMap<String, String>>
 ) -> actix_web::Result<HttpResponse> {
     println!("[POST] /api/m2d/files");
+
+    if !data.validate_token(query.get("token").unwrap_or(&"".to_string())) {
+        return Err(actix_web::error::ErrorUnauthorized("Invalid Token"));
+    }
 
     let mut files = data.m2d_files.lock().unwrap();
     files.clear();
