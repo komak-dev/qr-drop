@@ -3408,6 +3408,7 @@ dependencies = [
  "bytes",
  "futures-util",
  "pnet",
+ "rand 0.9.0",
  "serde",
  "serde_json",
  "tauri",
