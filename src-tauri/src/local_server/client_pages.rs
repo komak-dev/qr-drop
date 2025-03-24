@@ -1,4 +1,4 @@
-use super::StaticFilesManager;
+use super::ActixData;
 
 use actix_web::{web, get, HttpRequest, Responder};
 use actix_files::NamedFile;
@@ -10,7 +10,7 @@ use std::path::PathBuf;
 
 // クライアント側のページ(Next.js)を提供する
 #[get("/{path:.*}")]
-pub async fn serve_client_pages(req: HttpRequest, data: web::Data<StaticFilesManager>) -> impl Responder {
+pub async fn serve_client_pages(req: HttpRequest, data: web::Data<ActixData>) -> impl Responder {
     let base_dir = PathBuf::from(&data.client_pages_dir);
     let path: PathBuf = base_dir.join(req.match_info().query("path"));
 
