@@ -1,41 +1,50 @@
-use actix_web::{web, get, post, HttpResponse, Responder};
+use super::{
+    TFileNames,
+    TFiles,
+    TokenManager,
+    ServerInfo,
+    StaticFilesManager,
+};
+
+use actix_web::{web, get, post, HttpRequest, HttpResponse, Responder};
 use actix_multipart::Multipart;
-use std::sync::Mutex;
 use futures_util::StreamExt as _;
-use bytes::{Bytes, BytesMut};
+use bytes::BytesMut;
 use std::io::Cursor;
 use std::io::Write;
 use zip::write::SimpleFileOptions;
+use actix_files::NamedFile;
+use std::path::PathBuf;
 
 
-pub struct TFileNames {
-    d2m: Mutex<Vec<String>>,
-    m2d: Mutex<Vec<String>>,
-}
 
-impl TFileNames {
-    pub fn new() -> Self {
-        TFileNames {
-            d2m: Mutex::new(Vec::new()),
-            m2d: Mutex::new(Vec::new()),
-        }
+
+
+// クライアント側のページ(Next.js)を提供する
+#[get("/{path:.*}")]
+pub async fn serve_client_pages(req: HttpRequest, data: web::Data<StaticFilesManager>) -> impl Responder {
+    let base_dir = PathBuf::from(&data.client_pages_dir);
+    let path: PathBuf = base_dir.join(req.match_info().query("path"));
+
+    println!("[GET] {}", path.display());
+
+    dbg!(&path);
+
+    if path == base_dir {
+        NamedFile::open(path.join("index.html"))
+    } else if path.extension().is_none() {
+        NamedFile::open(path.with_extension("html"))
+    } else {
+        NamedFile::open(path)
     }
 }
 
 
-pub struct TFiles {
-    d2m: Mutex<Vec<(String, Bytes)>>,
-    m2d: Mutex<Vec<(String, Bytes)>>,
-}
 
-impl TFiles {
-    pub fn new() -> Self {
-        TFiles {
-            d2m: Mutex::new(Vec::new()),
-            m2d: Mutex::new(Vec::new()),
-        }
-    }
-}
+
+
+
+
 
 
 
@@ -71,6 +80,13 @@ pub async fn post_m2d_filenames(data: web::Data<TFileNames>, filenames: web::Jso
     *data.m2d.lock().unwrap() = filenames.0.clone();
     web::Json(filenames.0)
 }
+
+
+
+
+
+
+
 
 
 
@@ -173,4 +189,25 @@ pub async fn post_m2d_files(data: web::Data<TFiles>, mut payload: Multipart) -> 
     }
 
     Ok(HttpResponse::Ok().finish())
+}
+
+
+
+
+
+
+
+
+
+
+// QRコードにするURLのやり取り
+#[get("/api/d2m/mobile-url")]
+async fn get_d2m_mobile_url(
+    token_manager: web::Data<TokenManager>,
+    server_info: web::Data<ServerInfo>
+) -> impl Responder {
+    let token = token_manager.d2m_token.lock().unwrap();
+
+
+    "aiueo"
 }
