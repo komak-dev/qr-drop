@@ -12,7 +12,12 @@ pub fn run() {
             let client_pages_url = format!("http://{}:{}", server_info.ip, server_info.client_pages_port);
             let api_url = format!("http://{}:{}", server_info.ip, server_info.api_port);
 
-            let desktop_page_url = format!("{}?token={}", client_pages_url, server_info.token);
+            let desktop_page_url = format!(
+                "{}?token={}&apiUrl={}",
+                client_pages_url, 
+                server_info.token,
+                api_url
+            );
 
             println!("\nServer for client pages is running on: {}", client_pages_url);
             println!("Server for api is running on: {}", api_url);
@@ -25,6 +30,7 @@ pub fn run() {
             ).title("QRDrop")
                 .resizable(false)
                 .inner_size(600.0, 400.0)
+                .disable_drag_drop_handler()
                 .build()
                 .unwrap();
 
