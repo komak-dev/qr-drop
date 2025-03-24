@@ -1,14 +1,19 @@
 mod data;
-mod services;
+mod files;
+mod filenames;
+mod mobile_url;
+mod client_pages;
 
 pub use data::ServerInfo;
 use data::{TFiles, TFileNames, TokenManager, StaticFilesManager};
-use services::{
-    serve_client_pages,
+use client_pages::serve_client_pages;
+use filenames::{
     get_d2m_filenames,
     get_m2d_filenames,
     post_d2m_filenames,
     post_m2d_filenames,
+};
+use files::{
     get_d2m_files,
     get_m2d_files,
     post_d2m_files,
@@ -17,13 +22,18 @@ use services::{
 
 use super::dev_configurator::{IS_CLIENT_PAGES_DEV, IS_API_DEV};
 
-use actix_web::{web, App, HttpServer};
+use actix_web::{web, App, HttpServer, HttpRequest, get};
 use actix_files::Files;
 use std::net::TcpListener;
 use pnet::datalink;
 use tauri::Manager;
 
 
+#[get("/ip")]
+async fn get_ip(req: HttpRequest) -> String {
+    let ip = req.peer_addr().map(|addr| addr.ip().to_string()).unwrap_or_else(|| "unknown".to_string());
+    format!("Your IP address is: {}", ip)
+}
 
 
 
@@ -60,6 +70,7 @@ pub fn start_server(app: &tauri::App) -> ServerInfo {
                 .app_data(web::Data::new(TFileNames::new()))
                 .app_data(web::Data::new(TFiles::new()))
                 .app_data(web::Data::new(TokenManager::new()))
+                .service(get_ip)
                 .service(get_d2m_filenames)
                 .service(get_m2d_filenames)
                 .service(post_d2m_filenames)
