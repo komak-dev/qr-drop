@@ -1,7 +1,6 @@
 mod data;
 mod files;
 mod filenames;
-mod mobile_url;
 mod client_pages;
 
 pub use data::{ServerInfo, ActixData, D2MFile, M2DFile, D2MFileName, M2DFileName};

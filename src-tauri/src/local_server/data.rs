@@ -14,6 +14,7 @@ pub struct ServerInfo {
     pub ip: String,
     pub api_port: u16,
     pub client_pages_port: u16,
+    pub token: String,
 }
 
 impl ServerInfo {
@@ -27,7 +28,12 @@ impl ServerInfo {
             .collect::<Vec<String>>()[1]
             .clone();
 
-        Self { ip, api_port, client_pages_port }
+        Self { 
+            ip,
+            api_port, 
+            client_pages_port,
+            token: Alphanumeric.sample_string(&mut rand::rng(), 32).to_string(),
+        }
     }
 }
 
@@ -64,7 +70,6 @@ pub struct M2DFile {
 pub struct ActixData {
     pub server_info: ServerInfo,
     pub client_pages_dir: PathBuf,
-    pub token: String,
     pub d2m_filenames: Mutex<Vec<D2MFileName>>,
     pub m2d_filenames: Mutex<Vec<M2DFileName>>,
     pub d2m_files: Mutex<Vec<D2MFile>>,
@@ -77,11 +82,14 @@ impl ActixData {
         Self {
             server_info,
             client_pages_dir,
-            token: Alphanumeric.sample_string(&mut rand::rng(), 32).to_string(),
             d2m_filenames: Mutex::new(Vec::new()),
             m2d_filenames: Mutex::new(Vec::new()),
             d2m_files: Mutex::new(Vec::new()),
             m2d_files: Mutex::new(Vec::new()),
         }
+    }
+
+    pub fn validate_token(&self, token: &str) -> bool {
+        self.server_info.token == token
     }
 }

@@ -1,13 +1,19 @@
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/components/ui/tabs";
+import { useSearchParams } from "next/navigation";
 
 export default function Page() {
+  const query = useSearchParams();
+  const token = query.get("token");
+
   return (
     <Tabs defaultValue="upload" className="w-full h-full p-6">
       <TabsList className="grid w-full grid-cols-2 w-[400px] mx-auto">
@@ -16,12 +22,14 @@ export default function Page() {
       </TabsList>
       <TabsContent value="upload">
         <UploadScreen />
+        <p>{token}</p>
       </TabsContent>
       <TabsContent value="download">
         <DownloadScreen />
+        <p>{token}</p>
       </TabsContent>
     </Tabs>
-  )
+  );
 }
 
 
